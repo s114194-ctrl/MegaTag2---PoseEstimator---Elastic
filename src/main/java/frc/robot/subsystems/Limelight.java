@@ -20,18 +20,18 @@ import frc.robot.LimelightHelpers.PoseEstimate;
 
 import java.security.PrivateKey;
 
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SimSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.jni.SwerveJNI.ModulePosition;
+import frc.robot.subsystems.Driver;
+
 
 public class Limelight extends SubsystemBase {
-  public Limelight(){
-      SmartDashboard.putData("field2d",field2d);
-    }
   private final SwerveDriveKinematics getKinematics= new SwerveDriveKinematics(  
-    new Translation2d(0.32385, 0.32385), // 前左 (假設值, 請替換為實際值)
-    new Translation2d(0.32385, -0.32385), // 前右
-    new Translation2d(-0.32385, 0.32385), // 後左
-    new Translation2d(-0.32385, -0.32385) // 後右
+    new Translation2d(0.32385, 0.32385), // FL
+    new Translation2d(0.32385, -0.32385), // FR
+    new Translation2d(-0.32385, 0.32385), // BF
+    new Translation2d(-0.32385, -0.32385) // BR
     );
   private  Rotation2d rotation2d = new Rotation2d(0);
   private final SwerveModulePosition[] swerveModulePosition = new SwerveModulePosition[]{
@@ -42,8 +42,19 @@ public class Limelight extends SubsystemBase {
   };
   private Pose2d pose2d = new Pose2d();
   private final Field2d field2d = new Field2d();
-  private final PoseEstimate botpose = new PoseEstimate();
   private SwerveDrivePoseEstimator swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(getKinematics, rotation2d, swerveModulePosition, pose2d);
+  private final PoseEstimate botpose = new PoseEstimate();
+  private final Driver driver;
+ 
+  public Limelight(Driver driver){
+    this.driver = driver;
+    SmartDashboard.putData("field2d",field2d);
+    swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(
+      getKinematics, 
+      driver.getGyroscopeRotation(),
+      driver.getModulePositions(), 
+      pose2d);
+    }
   public SwerveDrivePoseEstimator getswSwerveDrivePoseEstimator(){
     return swerveDrivePoseEstimator;
   
@@ -55,8 +66,7 @@ public class Limelight extends SubsystemBase {
     LimelightHelpers.SetRobotOrientation("limelight", swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
     PoseEstimate mT2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("Limelight");
      
-    try{ 
-      mT2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");  
+    try{  
       field2d.getObject("botpose").setPose(mT2Estimate.pose);
      }
      catch(Exception e){
