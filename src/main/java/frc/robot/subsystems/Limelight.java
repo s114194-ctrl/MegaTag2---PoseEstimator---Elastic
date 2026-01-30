@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -24,6 +25,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SimSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.jni.SwerveJNI.ModulePosition;
 import frc.robot.subsystems.Driver;
+import edu.wpi.first.wpilibj.Encoder;
 
 
 public class Limelight extends SubsystemBase {
@@ -33,6 +35,9 @@ public class Limelight extends SubsystemBase {
     new Translation2d(-0.32385, 0.32385), // BF
     new Translation2d(-0.32385, -0.32385) // BR
     );
+  
+  private final Encoder drivEncoder;
+  private final Encoder drivTurn;
   private Driver driver = new Driver();
   public Rotation2d rotation2d;
   public SwerveModulePosition[] swerveModulePosition = Driver.getModulePositions();
@@ -44,6 +49,8 @@ public class Limelight extends SubsystemBase {
 
   public Limelight(Driver driver){
     this.driver = driver;
+    this.drivEncoder = new Encoder(1, 2);
+    this.drivTurn = new Encoder(3, 4);
     SmartDashboard.putData("field2d",field2d);
     swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(
       getKinematics, 
@@ -59,9 +66,13 @@ public class Limelight extends SubsystemBase {
     public SwerveDrivePoseEstimator getswSwerveDrivePoseEstimator(){
       return swerveDrivePoseEstimator;
     }
+
+    public SwerveModulePosition getSwerveModulePositions(){
+      return new SwerveModulePosition(
+        drivEncoder.getDistance() , new Rotation2d(drivTurn.getDistance()));
+        
     
-    public SwerveModulePosition[] getSwerveModulePositions(){
-    return new SwerveModulePosition[]{FL,FR,BL,BR};
+      //return new SwerveModulePosition[]{FL,FR,BL,BR};
     } 
       
   @Override
@@ -79,7 +90,7 @@ public class Limelight extends SubsystemBase {
       System.out.println(e);
      }
 
-    swerveDrivePoseEstimator.update(rotation2d,getSwerveModulePositions());
+    swerveDrivePoseEstimator.update(rotation2d, swerveModulePosition);
 
     try{
       swerveDrivePoseEstimator.addVisionMeasurement(mT2Estimate.pose , mT2Estimate.timestampSeconds);
