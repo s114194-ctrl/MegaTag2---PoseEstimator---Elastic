@@ -33,19 +33,15 @@ public class Limelight extends SubsystemBase {
     new Translation2d(-0.32385, 0.32385), // BF
     new Translation2d(-0.32385, -0.32385) // BR
     );
-  private  Rotation2d rotation2d = new Rotation2d(0);
-  private final SwerveModulePosition[] swerveModulePosition = new SwerveModulePosition[]{
-    new SwerveModulePosition(),
-    new SwerveModulePosition(),
-    new SwerveModulePosition(),
-    new SwerveModulePosition()
-  };
+  private Driver driver = new Driver();
+  public Rotation2d rotation2d;
+  public SwerveModulePosition[] swerveModulePosition = Driver.getModulePositions();
   private Pose2d pose2d = new Pose2d();
   private final Field2d field2d = new Field2d();
   private SwerveDrivePoseEstimator swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(getKinematics, rotation2d, swerveModulePosition, pose2d);
-  private final PoseEstimate botpose = new PoseEstimate();
-  private final Driver driver;
- 
+  public Pigeon2 pigeon2 = new Pigeon2(0);
+  
+
   public Limelight(Driver driver){
     this.driver = driver;
     SmartDashboard.putData("field2d",field2d);
@@ -55,16 +51,26 @@ public class Limelight extends SubsystemBase {
       driver.getModulePositions(), 
       pose2d);
     }
-  public SwerveDrivePoseEstimator getswSwerveDrivePoseEstimator(){
-    return swerveDrivePoseEstimator;
-  
-  }
-
+    
+    private SwerveModulePosition FL;
+    private SwerveModulePosition FR;
+    private SwerveModulePosition BL;
+    private SwerveModulePosition BR;
+    public SwerveDrivePoseEstimator getswSwerveDrivePoseEstimator(){
+      return swerveDrivePoseEstimator;
+    }
+    
+    public SwerveModulePosition[] getSwerveModulePositions(){
+    return new SwerveModulePosition[]{FL,FR,BL,BR};
+    } 
+      
   @Override
   public void periodic() {
    
-    LimelightHelpers.SetRobotOrientation("limelight", swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    LimelightHelpers.SetRobotOrientation("Limelight", swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
     PoseEstimate mT2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("Limelight");
+    rotation2d = new Rotation2d(pigeon2.getYaw().getValue()) ;
+
      
     try{  
       field2d.getObject("botpose").setPose(mT2Estimate.pose);
@@ -73,12 +79,10 @@ public class Limelight extends SubsystemBase {
       System.out.println(e);
      }
 
-    swerveDrivePoseEstimator.update(rotation2d,swerveModulePosition);
-    LimelightHelpers.SetRobotOrientation(
-      "limelight", swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    swerveDrivePoseEstimator.update(rotation2d,getSwerveModulePositions());
 
     try{
-      swerveDrivePoseEstimator.addVisionMeasurement(botpose.pose , botpose.timestampSeconds);
+      swerveDrivePoseEstimator.addVisionMeasurement(mT2Estimate.pose , mT2Estimate.timestampSeconds);
       pose2d = swerveDrivePoseEstimator.getEstimatedPosition();
       field2d.setRobotPose(pose2d);}
       catch(Exception e){
