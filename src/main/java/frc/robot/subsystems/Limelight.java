@@ -4,26 +4,18 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
-
-import java.security.PrivateKey;
-
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.swerve.SimSwerveDrivetrain;
-import com.ctre.phoenix6.swerve.jni.SwerveJNI.ModulePosition;
 import frc.robot.subsystems.Driver;
 import edu.wpi.first.wpilibj.Encoder;
 
@@ -39,7 +31,7 @@ public class Limelight extends SubsystemBase {
   private final Encoder drivEncoder;
   private final Encoder drivTurn;
   private Driver driver = new Driver();
-  public Rotation2d rotation2d;
+  public Rotation2d rotation2d = new Rotation2d(0);
   public SwerveModulePosition[] swerveModulePosition = Driver.getModulePositions();
   private Pose2d pose2d = new Pose2d();
   private final Field2d field2d = new Field2d();
@@ -52,28 +44,12 @@ public class Limelight extends SubsystemBase {
     this.drivEncoder = new Encoder(1, 2);
     this.drivTurn = new Encoder(3, 4);
     SmartDashboard.putData("field2d",field2d);
-    swerveDrivePoseEstimator = new SwerveDrivePoseEstimator(
-      getKinematics, 
-      driver.getGyroscopeRotation(),
-      driver.getModulePositions(), 
-      pose2d);
     }
-    
-    private SwerveModulePosition FL;
-    private SwerveModulePosition FR;
-    private SwerveModulePosition BL;
-    private SwerveModulePosition BR;
     public SwerveDrivePoseEstimator getswSwerveDrivePoseEstimator(){
       return swerveDrivePoseEstimator;
     }
 
-    public SwerveModulePosition getSwerveModulePositions(){
-      return new SwerveModulePosition(
-        drivEncoder.getDistance() , new Rotation2d(drivTurn.getDistance()));
-        
     
-      //return new SwerveModulePosition[]{FL,FR,BL,BR};
-    } 
       
   @Override
   public void periodic() {
@@ -100,6 +76,11 @@ public class Limelight extends SubsystemBase {
         System.out.print(e);
       }
 
+    } 
+    
+    public SwerveModulePosition getSwerveModulePositions(){
+      return new SwerveModulePosition(
+        drivEncoder.getDistance() , new Rotation2d(drivTurn.getDistance()));
     } 
   }
   
